@@ -1,6 +1,6 @@
 package com.haris.analyzer_auth_server.user;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -20,9 +20,46 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    private String passwordHash; 
+    @Column(nullable = false)
+    private String passwordHash;
 
-    private List<String> analysisSummaries;
+    @Column(updatable = false, nullable = false)
+    private final Instant createdAt = Instant.now();
+
+    public User() {
+    }
+
+    public User(UUID id, String email, String passwordHash) {
+        this.id = id; 
+        this.email = email;
+        this.passwordHash = passwordHash; 
+    }
     
-    // getters/setters or use Lombok @Data to cut boilerplate 
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id; 
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash; 
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt; 
+    }
 }
