@@ -29,8 +29,7 @@ public class User {
     public User() {
     }
 
-    public User(UUID id, String email, String passwordHash) {
-        this.id = id; 
+    public User(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash; 
     }
