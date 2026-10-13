@@ -26,9 +26,6 @@ public class User {
     @Column(updatable = false, nullable = false)
     private final Instant createdAt = Instant.now();
 
-    public User() {
-    }
-
     public User(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash; 

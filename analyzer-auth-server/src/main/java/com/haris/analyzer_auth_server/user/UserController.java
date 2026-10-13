@@ -1,8 +1,8 @@
 package com.haris.analyzer_auth_server.user;
 
 import java.util.List;
-import java.util.Optional;
 
+import com.haris.analyzer_auth_server.config.Jwt.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,11 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserRepository userRepository; 
 
-    private final PasswordEncoder passwordEncoder; 
+    private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final JwtService jwtService;
+
+    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     /**
@@ -31,13 +34,13 @@ public class UserController {
      * @return A list of all users that matched the given request parameters (or all users if no parameters was given). 
      */
     @GetMapping(path="/api/users")
-    public List<User> getUsers(@RequestParam Optional<String> email) {
+    public List<User> getUsers(@RequestParam String email) {
         // If the email parameter is specified, then try to search for the specific user with the given email
-        if(email.isPresent()) {
-            return userRepository.findByEmail(email.get())
+        if(email != null) {
+            return userRepository.findByEmail(email)
                 .map(List::of)
                 .orElse(List.of());
-        } 
+        }
         
         // Otherwise, return all users
         return userRepository.findAll();
@@ -59,23 +62,61 @@ public class UserController {
      * @return Response code and body signalling the result of the request. 
      */
     @RequestMapping(path="/api/auth/register", method=RequestMethod.POST)
-    public ResponseEntity<String> requestUserRegister(@RequestBody RegisterRequest request) {
-        String email = request.getEmail();
-        String password = request.getPassword();
+    public ResponseEntity<RegisterResponse> requestUserRegister(@RequestBody RegisterRequest request) {
+        final String email = request.email();
+        final String password = request.password();
 
         //check that user with given email already exists, return 500
         if (userRepository.existsByEmail(email)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User already exists"); 
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new RegisterResponse("User already exists.")
+            );
         }
 
         //hash password, using passwordHasher bean
-        String passwordHash = passwordEncoder.encode(password);
+        final String passwordHash = passwordEncoder.encode(password);
 
         //store new User in DB
         User newUser = new User(email, passwordHash);
         userRepository.save(newUser);
 
-        //return OK response
-        return ResponseEntity.status(HttpStatus.OK).body("User succesfully created");
+        //return OK response, with token
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new RegisterResponse("User succesfully created.")
+        );
+    }
+
+    @RequestMapping(path="/api/auth/login", method=RequestMethod.GET) //should it be post or get? maybe get because they expect to get a token i think
+    public ResponseEntity<LoginResponse> requestUserLogin(@RequestParam LoginRequest request) {
+        final String email = request.email();
+        final String password = request.password();
+
+        // Check that the credentials are correct
+        if (!userRepository.existsByEmail(email)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new LoginResponse(null, null, null, "Email or password is incorrect. Please try again.")
+            );
+        }
+
+        User targetUser = userRepository.findByEmail(email).get();
+
+        if (!passwordEncoder.matches(password, targetUser.getPasswordHash())) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new LoginResponse(null, null, null, "Email or password is incorrect. Please try again.")
+            );
+        }
+
+        // Create an access token
+        final String accessToken = jwtService.generateToken(targetUser);
+
+        // Send OK response with the token
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new LoginResponse(
+                        accessToken,
+                        "Bearer",
+                        jwtService.extractExpiration(accessToken).toString(),
+                        "Successfully logged in."
+                )
+        );
     }
 }
