@@ -10,11 +10,14 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Optional;
 
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -63,7 +66,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // to show that the user is authenticated
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         user,
-                        null/*TODO: add user authorities*/);
+                        null,
+                        new ArrayList<>());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

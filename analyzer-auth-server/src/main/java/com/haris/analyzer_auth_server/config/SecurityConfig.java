@@ -36,7 +36,7 @@ class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) //disable cookie based auth
                 .authorizeHttpRequests(authorize ->
                         authorize //define endpoints where auth isn't required
-                                .requestMatchers("/api/login", "/api/register").permitAll()
+                                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(session ->
                         //stateless bcs every request is authenticated using JWT

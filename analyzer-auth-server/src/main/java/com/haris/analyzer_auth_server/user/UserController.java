@@ -1,6 +1,7 @@
 package com.haris.analyzer_auth_server.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.haris.analyzer_auth_server.config.Jwt.JwtService;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ public class UserController {
      * @return A list of all users that matched the given request parameters (or all users if no parameters was given). 
      */
     @GetMapping(path="/api/users")
-    public List<User> getUsers(@RequestParam String email) {
+    public List<User> getUsers(@RequestParam Optional<String> email) {
         // If the email parameter is specified, then try to search for the specific user with the given email
-        if(email != null) {
-            return userRepository.findByEmail(email)
+        if(email.isPresent()) {
+            return userRepository.findByEmail(email.get())
                 .map(List::of)
                 .orElse(List.of());
         }
@@ -86,8 +87,8 @@ public class UserController {
         );
     }
 
-    @RequestMapping(path="/api/auth/login", method=RequestMethod.GET) //should it be post or get? maybe get because they expect to get a token i think
-    public ResponseEntity<LoginResponse> requestUserLogin(@RequestParam LoginRequest request) {
+    @RequestMapping(path="/api/auth/login", method=RequestMethod.POST) //should it be post or get? maybe get because they expect to get a token i think
+    public ResponseEntity<LoginResponse> requestUserLogin(@RequestBody LoginRequest request) {
         final String email = request.email();
         final String password = request.password();
 

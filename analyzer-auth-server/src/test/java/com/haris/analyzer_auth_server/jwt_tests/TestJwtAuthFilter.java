@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,7 +25,7 @@ public class TestJwtAuthFilter {
     private final User testUser;
 
     public TestJwtAuthFilter() {
-        String secret = "IBjsiXVNkcPPYWqw+dKcyouP2Pefs71pko8+xeXlfAg=";
+        String secret = "IBjsiXVNkcPPYWqw+dKcyouP2Pefs71pko8+xeXlfAg="; //secret for testing
         this.jwtService = new JwtServiceStub(new UserRepositoryStub(), secret);
         this.jwtAuthFilter = new JwtAuthFilter(jwtService, new UserRepositoryStub());
         this.testUser = new User(testEmail, testPassword);
@@ -52,6 +53,9 @@ public class TestJwtAuthFilter {
         try {
             jwtAuthFilter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
             assertNotNull(SecurityContextHolder.getContext().getAuthentication());
+            Authentication auth =
+                    SecurityContextHolder.getContext().getAuthentication();
+            assertTrue(auth.isAuthenticated());
         } catch (Exception e) {
             fail("The filter threw an exception.");
         }

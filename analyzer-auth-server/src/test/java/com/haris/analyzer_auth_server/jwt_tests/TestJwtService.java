@@ -17,17 +17,19 @@ public class TestJwtService {
     private final JwtService jwtService;
     private final String testEmail = "me123@test.com";
     private final String testPassword = "abcxyz";
+    private final User testUser;
 
     public TestJwtService() {
-        String secret = "IBjsiXVNkcPPYWqw+dKcyouP2Pefs71pko8+xeXlfAg=";
+        String secret = "IBjsiXVNkcPPYWqw+dKcyouP2Pefs71pko8+xeXlfAg="; //secret for testing
         this.jwtService = new JwtService(new UserRepositoryStub(), secret);
+        testUser = new User(testEmail, testPassword);
     }
 
     @Test
     public void extractUsernameIsCorrect() {
         //Given the JwtService
         //When a token is generated
-        final String token = jwtService.generateToken(new User(testEmail, testPassword));
+        final String token = jwtService.generateToken(testUser);
 
         //Then extractUsername returns the same email
         assertTrue(testEmail.equals(jwtService.extractUsername(token)));
@@ -37,7 +39,7 @@ public class TestJwtService {
     public void generatedTokensAreValid() {
         //Given the JwtService
         //When a token is generated
-        final String token = jwtService.generateToken(new User(testEmail, testPassword));
+        final String token = jwtService.generateToken(testUser);
 
         //Then this token should be valid, assuming user with email exists (this is true for UserRepositoryStub)
         assertTrue(jwtService.isValid(token));
@@ -47,7 +49,7 @@ public class TestJwtService {
     public void jwtWithoutSignatureIsInvalid() {
         //Given the JwtService
         //When a token is generated
-        final String token = jwtService.generateToken(new User(testEmail, testPassword));
+        final String token = jwtService.generateToken(testUser);
 
         //If it doesn't contain the signature
         final String[] tokenParts = token.split("\\.");
@@ -65,7 +67,7 @@ public class TestJwtService {
         final String wrongSignatureToken = new JwtService(
                 new UserRepositoryStub(),
                 "JBjsiXVNkcPPYWqw+dKcyouP2Pefs71pko8+xeXlfAg=") //changed the first letter of secret
-                        .generateToken(new User(testEmail, testPassword));
+                        .generateToken(testUser);
 
 
         //Then this token should be invalid, since it has a signature that was generated with a wrong key
@@ -80,7 +82,7 @@ public class TestJwtService {
         //...see https://www.rfc-editor.org/rfc/rfc7519.html#section-4.1.4
         expirationClaim.put("exp", new Date(System.currentTimeMillis() - (60*1000)));
         final String expiredToken = jwtService.generateToken(
-                new User(testEmail, testPassword),
+                testUser,
                 expirationClaim);
 
         //then this token should be invalid
@@ -101,7 +103,7 @@ public class TestJwtService {
     public void tamperedPayloadIsInvalid() {
         //Given the JwtService
         //When a valid token is generated
-        final String token = jwtService.generateToken(new User(testEmail, testPassword));
+        final String token = jwtService.generateToken(testUser);
 
         //If the payload is tampered with
         final String[] tokenParts = token.split("\\.");
@@ -120,7 +122,7 @@ public class TestJwtService {
     public void tamperedHeaderIsInvalid() {
         //Given the JwtService
         //When a valid token is generated
-        final String token = jwtService.generateToken(new User(testEmail, testPassword));
+        final String token = jwtService.generateToken(testUser);
 
         //If the payload is tampered with
         final String[] tokenParts = token.split("\\.");
