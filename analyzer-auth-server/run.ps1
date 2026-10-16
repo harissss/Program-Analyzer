@@ -1,6 +1,12 @@
 Get-Content .env | ForEach-Object {
     if ($_ -match '^\s*([^#][^=]*)=(.*)$') {
-        [System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim())
+        $name = $matches[1].Trim()
+        $value = $matches[2].Trim()
+        [System.Environment]::SetEnvironmentVariable(
+                $name,
+                $value,
+                [System.EnvironmentVariableTarget]::Process
+        )
     }
 }
 ./mvnw spring-boot:run
