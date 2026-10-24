@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController 
+@RestController
+@RequestMapping("/api")
 public class UserController {
     private final UserRepository userRepository; 
 
@@ -32,7 +33,7 @@ public class UserController {
      * @param request The request with email and password. 
      * @return Response code and body signalling the result of the request. 
      */
-    @RequestMapping(path="/api/auth/register", method=RequestMethod.POST)
+    @RequestMapping(path="/auth/register", method=RequestMethod.POST)
     public ResponseEntity<RegisterResponse> requestUserRegister(@RequestBody RegisterRequest request) {
         final String email = request.email();
         final String password = request.password();
@@ -64,7 +65,7 @@ public class UserController {
      * @param request the request body, containing the email and password.
      * @return The authentication response, containing a JWT bearer token if successful.
      */
-    @RequestMapping(path="/api/auth/login", method=RequestMethod.POST) //should it be post or get? maybe get because they expect to get a token i think
+    @RequestMapping(path="/auth/login", method=RequestMethod.POST) //should it be post or get? maybe get because they expect to get a token i think
     public ResponseEntity<LoginResponse> requestUserLogin(@RequestBody LoginRequest request) {
         final String email = request.email();
         final String password = request.password();
@@ -103,7 +104,7 @@ public class UserController {
      *
      * @return Authentication object for the currently authenticated user in the Security Context.
      */
-    @RequestMapping(path="/api/me", method=RequestMethod.GET)
+    @RequestMapping(path="/me", method=RequestMethod.GET)
     public ResponseEntity<Authentication> requestCurrentlyAuthenticatedUser() {
         Authentication userAuth = SecurityContextHolder.getContext().getAuthentication();
 
